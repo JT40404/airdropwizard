@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AIRDROP WIZARD • $WIZ</title>
+  <script src="https://unpkg.com/@solana/web3.js@latest/dist/web3.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap');
+
+    :root {
+      --neon-pink: #ff00ff;
+      --neon-cyan: #00ffff;
+      --neon-green: #39ff14;
+      --dark-bg: #0a0a1f;
+      --darker: #05050f;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: linear-gradient(135deg, #0a0a1f 0%, #1a0033 100%);
+      color: #00ffff;
+      font-family: 'VT323', monospace;
+      font-size: 22px;
+      line-height: 1.4;
+      overflow-x: hidden;
+      min-height: 100vh;
+      position: relative;
+    }
+
+    /* Cyberpunk Scanlines & Glitch */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: repeating-linear-gradient(
+        transparent 0px,
+        transparent 2px,
+        rgba(255,255,255,0.03) 2px,
+        rgba(255,255,255,0.03) 4px
+      );
+      pointer-events: none;
+      z-index: 1;
+      animation: scan 4s linear infinite;
+    }
+
+    @keyframes scan {
+      0% { transform: translateY(-100%); }
+      100% { transform: translateY(100%); }
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      position: relative;
+      z-index: 2;
+    }
+
+    header {
+      text-align: center;
+      padding: 40px 0 20px;
+      border-bottom: 3px solid var(--neon-pink);
+      text-shadow: 0 0 20px var(--neon-pink);
+    }
+
+    .logo {
+      font-family: 'Press Start 2P', cursive;
+      font-size: 4.5rem;
+      background: linear-gradient(90deg, #ff00ff, #00ffff, #39ff14);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 0 30px #ff00ff, 0 0 60px #00ffff;
+      margin-bottom: 10px;
+      animation: glitch 1.5s infinite alternate;
+    }
+
+    @keyframes glitch {
+      0% { transform: translate(0); }
+      20% { transform: translate(-3px, 3px); }
+      40% { transform: translate(3px, -3px); }
+      60% { transform: translate(-2px, 2px); }
+      80% { transform: translate(2px, -2px); }
+      100% { transform: translate(0); }
+    }
+
+    .tagline {
+      font-size: 2rem;
+      color: var(--neon-green);
+      text-shadow: 0 0 15px var(--neon-green);
+      margin-bottom: 30px;
+    }
+
+    .main {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 60px 20px;
+    }
+
+    .card {
+      background: rgba(10, 10, 31, 0.85);
+      border: 4px solid var(--neon-cyan);
+      box-shadow: 0 0 40px var(--neon-cyan),
+                  inset 0 0 30px rgba(0, 255, 255, 0.2);
+      padding: 50px 60px;
+      max-width: 700px;
+      width: 100%;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(0,255,255,0.15) 0%, transparent 70%);
+      animation: pulse 8s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.6; }
+      50% { opacity: 1; }
+    }
+
+    h1 {
+      font-size: 3.2rem;
+      margin-bottom: 20px;
+      color: var(--neon-pink);
+      text-shadow: 0 0 20px var(--neon-pink);
+    }
+
+    .description {
+      font-size: 1.6rem;
+      margin-bottom: 40px;
+      color: #ffffff;
+    }
+
+    .connect-btn {
+      background: linear-gradient(45deg, #ff00ff, #00ffff);
+      color: #000;
+      font-family: 'Press Start 2P', cursive;
+      font-size: 1.8rem;
+      padding: 25px 80px;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 0 40px #ff00ff,
+                  0 0 80px #00ffff;
+      transition: all 0.3s;
+      text-transform: uppercase;
+      letter-spacing: 4px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .connect-btn:hover {
+      transform: scale(1.1) rotate(2deg);
+      box-shadow: 0 0 60px #ff00ff,
+                  0 0 100px #00ffff;
+    }
+
+    .connect-btn:active {
+      transform: scale(0.95);
+    }
+
+    .status {
+      margin-top: 30px;
+      font-size: 1.4rem;
+      min-height: 30px;
+    }
+
+    .connected {
+      color: #39ff14;
+      text-shadow: 0 0 15px #39ff14;
+    }
+
+    footer {
+      text-align: center;
+      padding: 40px 0;
+      color: #666;
+      font-size: 1.2rem;
+    }
+
+    .scanline {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(
+        to bottom,
+        transparent 50%,
+        rgba(57, 255, 20, 0.05) 50%
+      );
+      background-size: 100% 4px;
+      pointer-events: none;
+      z-index: 3;
+      animation: scanline-move 6s linear infinite;
+    }
+
+    @keyframes scanline-move {
+      0% { transform: translateY(-100%); }
+      100% { transform: translateY(100%); }
+    }
+  </style>
+</head>
+<body>
+  <div class="scanline"></div>
+  
+  <div class="container">
+    <header>
+      <div class="logo">AIRDROP WIZARD</div>
+      <div class="tagline">NEON TOKENS • INSTANT AIRDROPS • SOLANA SPEED</div>
+    </header>
+
+    <div class="main">
+      <div class="card">
+        <h1>CONNECT YOUR PHANTOM WALLET</h1>
+        <p class="description">
+          The future is here.<br>
+          Claim your $WIZ airdrop and join the neon revolution.
+        </p>
+        
+        <button id="connectBtn" class="connect-btn">
+          CONNECT PHANTOM WALLET
+        </button>
+
+        <div id="status" class="status"></div>
+      </div>
+    </div>
+
+    <footer>
+      © 2026 Airdrop Wizard • $WIZ TOKEN • ALL RIGHTS RESERVED IN THE METAVERSE
+    </footer>
+  </div>
+
+  <script>
+    const connectBtn = document.getElementById('connectBtn');
+    const statusDiv = document.getElementById('status');
+
+    async function connectPhantom() {
+      if (!window.solana || !window.solana.isPhantom) {
+        statusDiv.innerHTML = `<span style="color:#ff00ff;">❌ Phantom wallet not detected.<br>Please install Phantom from phantom.app</span>`;
+        window.open('https://phantom.app', '_blank');
+        return;
+      }
+
+      try {
+        const resp = await window.solana.connect();
+        statusDiv.innerHTML = `
+          <span class="connected">✅ CONNECTED SUCCESSFULLY</span><br>
+          <span style="font-size:1.2rem; color:#00ff00;">Wallet: ${resp.publicKey.toString().slice(0,8)}...${resp.publicKey.toString().slice(-6)}</span>
+        `;
+        
+        // You can redirect or trigger your actual buy/claim flow here
+        setTimeout(() => {
+          statusDiv.innerHTML += `<br><span style="color:#ffff00;">Redirecting to buy $WIZ...</span>`;
+          // Replace with your actual Raydium / Jupiter / Pump.fun link
+          window.location.href = "https://raydium.io/swap/?inputCurrency=sol&outputCurrency=YOUR_TOKEN_ADDRESS_HERE";
+        }, 1500);
+
+      } catch (err) {
+        console.error(err);
+        statusDiv.innerHTML = `<span style="color:#ff00ff;">Connection failed. Try again.</span>`;
+      }
+    }
+
+    connectBtn.addEventListener('click', connectPhantom);
+
+    // Auto-detect Phantom on load
+    window.addEventListener('load', () => {
+      if (window.solana && window.solana.isPhantom) {
+        statusDiv.innerHTML = `<span style="color:#39ff14;">Phantom wallet detected ✓</span>`;
+      }
+    });
+  </script>
+</body>
+</html>
